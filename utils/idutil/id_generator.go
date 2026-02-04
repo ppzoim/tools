@@ -15,9 +15,9 @@
 package idutil
 
 import (
-	"github.com/openimsdk/tools/utils/encrypt"
-	"github.com/openimsdk/tools/utils/stringutil"
-	"github.com/openimsdk/tools/utils/timeutil"
+	"github.com/ppzoim/tools/utils/encrypt"
+	"github.com/ppzoim/tools/utils/stringutil"
+	"github.com/ppzoim/tools/utils/timeutil"
 	"math/rand"
 	"strconv"
 	"time"

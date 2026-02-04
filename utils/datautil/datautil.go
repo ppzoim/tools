@@ -22,9 +22,9 @@ import (
 
 	"github.com/jinzhu/copier"
 
-	"github.com/openimsdk/tools/db/pagination"
-	"github.com/openimsdk/tools/errs"
-	"github.com/openimsdk/tools/utils/jsonutil"
+	"github.com/ppzoim/tools/db/pagination"
+	"github.com/ppzoim/tools/errs"
+	"github.com/ppzoim/tools/utils/jsonutil"
 )
 
 // SliceSubFuncs returns elements in slice a that are not present in slice b (a - b) and remove duplicates.
@@ -53,7 +53,7 @@ func SliceSubFuncs[T, V any, E comparable](a []T, b []V, fna func(i T) E, fnb fu
 	return rs
 }
 
-// SliceIntersectFuncs returns the intersection (a âˆ© b) of slices a and b, removing duplicates.
+// SliceIntersectFuncs returns the intersection (a âˆ?b) of slices a and b, removing duplicates.
 // The equality of elements is determined by the custom functions fna and fnb provided for each slice.
 func SliceIntersectFuncs[T, V any, E comparable](a []T, b []V, fna func(i T) E, fnb func(i V) E) []T {
 	// If b is empty, return an empty slice

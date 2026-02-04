@@ -17,7 +17,7 @@ package redisutil
 import (
 	"context"
 
-	"github.com/openimsdk/tools/errs"
+	"github.com/ppzoim/tools/errs"
 )
 
 // CheckRedis checks the Redis connection.

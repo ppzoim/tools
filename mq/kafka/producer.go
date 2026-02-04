@@ -17,7 +17,7 @@ package kafka
 import (
 	"context"
 	"github.com/IBM/sarama"
-	"github.com/openimsdk/tools/errs"
+	"github.com/ppzoim/tools/errs"
 	"google.golang.org/protobuf/proto"
 )
 

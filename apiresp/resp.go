@@ -19,8 +19,8 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/openimsdk/tools/errs"
-	"github.com/openimsdk/tools/utils/jsonutil"
+	"github.com/ppzoim/tools/errs"
+	"github.com/ppzoim/tools/utils/jsonutil"
 )
 
 type ApiResponse struct {

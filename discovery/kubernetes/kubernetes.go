@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openimsdk/tools/errs"
+	"github.com/ppzoim/tools/errs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	v1 "k8s.io/api/core/v1"

@@ -22,7 +22,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/openimsdk/tools/errs"
+	"github.com/ppzoim/tools/errs"
 )
 
 // ClientConfig defines configuration for the HTTP client.
