@@ -1,6 +1,8 @@
 module github.com/ppzoim/tools
 
-go 1.22.0
+go 1.22.7
+
+toolchain go1.23.5
 
 require (
 	github.com/IBM/sarama v1.43.0
@@ -30,7 +32,7 @@ require (
 	github.com/jinzhu/copier v0.4.0
 	github.com/magefile/mage v1.15.0
 	github.com/minio/minio-go/v7 v7.0.69
-	github.com/ppzoim/protocol v0.0.69-alpha.4
+	github.com/ppzoim/protocol v0.0.1
 	github.com/qiniu/go-sdk/v7 v7.18.2
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/shirou/gopsutil v3.21.11+incompatible

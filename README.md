@@ -1,4 +1,4 @@
-初始化tag
+創建tag并推送
 git tag v0.0.1; 
 git push origin main; 
 git push origin v0.0.1
@@ -12,3 +12,8 @@ git push -f origin v0.0.1
 如果你要把 v0.0.1 更新到 main 最新提交，用这些命令：
 git tag -f v0.0.1 main
 git push -f origin v0.0.1
+
+# 设置私有仓库
+go env -w GOPRIVATE=github.com/ppzoim/*
+# 配置 Git 使用 SSH
+git config --global url."git@github.com:".insteadOf "https://github.com/"
