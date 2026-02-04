@@ -1,4 +1,4 @@
-﻿package apiresp
+package apiresp
 
 import (
 	"testing"
