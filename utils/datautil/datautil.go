@@ -1,4 +1,4 @@
-// Copyright © 2023 OpenIM. All rights reserved.
+﻿// Copyright © 2023 OpenIM. All rights reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ func SliceSubFuncs[T, V any, E comparable](a []T, b []V, fna func(i T) E, fnb fu
 	return rs
 }
 
-// SliceIntersectFuncs returns the intersection (a �?b) of slices a and b, removing duplicates.
+// SliceIntersectFuncs returns the intersection (a ∩ b) of slices a and b, removing duplicates.
 // The equality of elements is determined by the custom functions fna and fnb provided for each slice.
 func SliceIntersectFuncs[T, V any, E comparable](a []T, b []V, fna func(i T) E, fnb func(i V) E) []T {
 	// If b is empty, return an empty slice
