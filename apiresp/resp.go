@@ -20,7 +20,7 @@ import (
 	"reflect"
 
 	"github.com/ppzoim/tools/errs"
-	"github.com/ppzoim/tools/ls/jsonutil"
+	"github.com/ppzoim/tools/utils/jsonutil"
 )
 
 type ApiResponse struct {

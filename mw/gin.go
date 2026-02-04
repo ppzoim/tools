@@ -25,7 +25,7 @@ import (
 	"github.com/ppzoim/tools/tokenverify"
 
 	"github.com/gin-gonic/gin"
-	"github.com/ppzoim/tocol/constant"
+	"github.com/ppzoim/protocol/constant"
 )
 
 // CorsHandler gin cross-domain configuration.

@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ppzoim/ls/ls/datautil"
 	"github.com/ppzoim/tools/errs"
 	"github.com/ppzoim/tools/log"
+	"github.com/ppzoim/tools/utils/datautil"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"go.etcd.io/etcd/client/v3/naming/endpoints"
 	"go.etcd.io/etcd/client/v3/naming/resolver"

@@ -22,9 +22,9 @@ import (
 
 	"github.com/jinzhu/copier"
 
-	"github.com/ppzoim/ls/ls/jsonutil"
 	"github.com/ppzoim/tools/db/pagination"
 	"github.com/ppzoim/tools/errs"
+	"github.com/ppzoim/tools/utils/jsonutil"
 )
 
 // SliceSubFuncs returns elements in slice a that are not present in slice b (a - b) and remove duplicates.

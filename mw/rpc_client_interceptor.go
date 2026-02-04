@@ -19,9 +19,9 @@ import (
 	"strings"
 
 	"github.com/openimsdk/tools/log"
-	"github.com/ppzoim/ls/errs"
 	"github.com/ppzoim/protocol/constant"
-	"github.com/ppzoim/tocol/errinfo"
+	"github.com/ppzoim/protocol/errinfo"
+	"github.com/ppzoim/tools/errs"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"

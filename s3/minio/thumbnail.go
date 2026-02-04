@@ -29,8 +29,8 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/ppzoim/tools/errs"
-	"github.com/ppzoim/ls/"
-	"github.com/ppzoim/ls/
+	"github.com/ppzoim/tools/log"
+	"github.com/ppzoim/tools/s3"
 )
 
 func (m *Minio) getImageThumbnailURL(ctx context.Context, name string, expire time.Duration, opt *s3.Image) (string, error) {

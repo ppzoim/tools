@@ -10,13 +10,13 @@ import (
 	"github.com/ppzoim/tools/errs"
 	"github.com/ppzoim/tools/mcontext"
 
-	rotatelogs "github.com/ppzoim/ls//file-rotatelogs"
-	"github.com/ppzoim/ls/ls/stringutil"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/ppzoim/tools/utils/stringutil"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ppzoim/tocol/constant"
+	"github.com/ppzoim/protocol/constant"
 )
 
 var (
