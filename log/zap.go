@@ -8,15 +8,15 @@ import (
 	"time"
 
 	"github.com/ppzoim/tools/errs"
+	"github.com/ppzoim/tools/mcontext"
 
-	rotatelogs "github.com/ppzoim/tools/log/file-rotatelogs"
-	"github.com/ppzoim/tools/utils/stringutil"
+	rotatelogs "github.com/ppzoim/ls//file-rotatelogs"
+	"github.com/ppzoim/ls/ls/stringutil"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/ppzoim/protocol/constant"
-	"github.com/ppzoim/tools/mcontext"
+	"github.com/ppzoim/tocol/constant"
 )
 
 var (
@@ -24,7 +24,6 @@ var (
 	AdaptiveErrorCodeLevel = map[int]int{
 		errs.ErrInternalServer.Code(): LevelError,
 	}
-	AsyncWrite = false
 )
 
 type LogFormatter interface {
@@ -93,10 +92,9 @@ func InitLoggerFromConfig(
 	rotationTime uint,
 	moduleVersion string,
 	isSimplify bool,
-	opts ...Options,
 ) error {
 
-	l, err := NewZapLogger(loggerPrefixName, moduleName, sdkType, platformName, logLevel, isStdout, isJson, logLocation, rotateCount, rotationTime, moduleVersion, isSimplify, opts...)
+	l, err := NewZapLogger(loggerPrefixName, moduleName, sdkType, platformName, logLevel, isStdout, isJson, logLocation, rotateCount, rotationTime, moduleVersion, isSimplify)
 	if err != nil {
 		return err
 	}
@@ -141,7 +139,7 @@ func ZError(ctx context.Context, msg string, err error, keysAndValues ...any) {
 }
 
 func ZPanic(ctx context.Context, msg string, err error, keysAndValues ...any) {
-	pkgLogger.Error(ctx, msg, err, keysAndValues...)
+	pkgLogger.Panic(ctx, msg, err, keysAndValues...)
 }
 
 func ZAdaptive(ctx context.Context, msg string, err error, keysAndValues ...any) {
@@ -177,21 +175,6 @@ func CInfo(ctx context.Context, msg string, keysAndValues ...any) {
 	osStdout.Info(ctx, msg, keysAndValues...)
 }
 
-func Flush() {
-	if pkgLogger == nil {
-		return
-	}
-	pkgLogger.Flush()
-}
-
-type Options func(logger *ZapLogger)
-
-func WithDefaultKeys(keys []string) Options {
-	return func(logger *ZapLogger) {
-		logger.defaultKeys = keys
-	}
-}
-
 type ZapLogger struct {
 	zap              *zap.SugaredLogger
 	level            zapcore.Level
@@ -202,8 +185,6 @@ type ZapLogger struct {
 	sdkType          string
 	platformName     string
 	isSimplify       bool
-
-	defaultKeys []string
 }
 
 func NewZapLogger(
@@ -216,7 +197,6 @@ func NewZapLogger(
 	rotationTime uint,
 	moduleVersion string,
 	isSimplify bool,
-	ops ...Options,
 ) (*ZapLogger, error) {
 	zapConfig := zap.Config{
 		Level:             zap.NewAtomicLevelAt(logLevelMap[logLevel]),
@@ -245,10 +225,6 @@ func NewZapLogger(
 		return nil, err
 	}
 	zl.zap = l.Sugar()
-
-	for _, o := range ops {
-		o(zl)
-	}
 	return zl, nil
 }
 
@@ -290,7 +266,6 @@ func (l *ZapLogger) cores(isStdout bool, isJson bool, logLocation string, rotate
 	c.CallerKey = "caller"
 	c.NameKey = "logger"
 	var fileEncoder zapcore.Encoder
-
 	if isJson {
 		c.EncodeLevel = zapcore.CapitalLevelEncoder
 		fileEncoder = zapcore.NewJSONEncoder(c)
@@ -301,32 +276,21 @@ func (l *ZapLogger) cores(isStdout bool, isJson bool, logLocation string, rotate
 		c.EncodeCaller = l.customCallerEncoder
 		fileEncoder = zapcore.NewConsoleEncoder(c)
 	}
-
 	fileEncoder = &alignEncoder{Encoder: fileEncoder}
 	writer, err := l.getWriter(logLocation, rotateCount)
 	if err != nil {
 		return nil, err
 	}
-
-	if !isStdout && AsyncWrite {
-		writer = &zapcore.BufferedWriteSyncer{
-			WS:            writer,
-			FlushInterval: time.Second * 2,
-			Size:          1024 * 512,
-		}
-	}
-
 	var cores []zapcore.Core
 	if logLocation != "" {
 		cores = []zapcore.Core{
 			zapcore.NewCore(fileEncoder, writer, zap.NewAtomicLevelAt(l.level)),
 		}
 	}
-
 	if isStdout {
 		cores = append(cores, zapcore.NewCore(fileEncoder, zapcore.Lock(os.Stdout), zap.NewAtomicLevelAt(l.level)))
+		// cores = append(cores, zapcore.NewCore(fileEncoder, zapcore.Lock(os.Stderr), zap.NewAtomicLevelAt(l.level)))
 	}
-
 	return zap.WrapCore(func(c zapcore.Core) zapcore.Core {
 		return zapcore.NewTee(cores...)
 	}), nil
@@ -507,19 +471,13 @@ func (l *ZapLogger) kvAppend(ctx context.Context, keysAndValues []any) []any {
 	if l.isSimplify {
 		if len(keysAndValues)%2 == 0 {
 			for i := 1; i < len(keysAndValues); i += 2 {
+
 				if val, ok := keysAndValues[i].(LogFormatter); ok && val != nil {
 					keysAndValues[i] = val.Format()
 				}
 			}
 		} else {
 			ZError(ctx, "keysAndValues length is not even", errs.ErrInternalServer.Wrap())
-		}
-	}
-
-	for _, k := range l.defaultKeys {
-		v, _ := ctx.Value(k).(string)
-		if v != "" {
-			keysAndValues = append([]any{k, v}, keysAndValues...)
 		}
 	}
 
@@ -560,12 +518,6 @@ func (l *ZapLogger) WithCallDepth(depth int) Logger {
 	dup := *l
 	dup.zap = l.zap.WithOptions(zap.AddCallerSkip(depth))
 	return &dup
-}
-
-func (l *ZapLogger) Flush() {
-	if err := l.zap.Sync(); err != nil {
-		_, _ = fmt.Fprintln(os.Stderr, "failed to flush zap logger", err)
-	}
 }
 
 func appendError(keysAndValues []any, err error) []any {

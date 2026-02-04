@@ -1,14 +1,27 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package mw
 
 import (
 	"context"
-	"errors"
 	"strings"
 
+	"github.com/openimsdk/tools/log"
+	"github.com/ppzoim/ls/errs"
 	"github.com/ppzoim/protocol/constant"
-	"github.com/ppzoim/protocol/errinfo"
-	"github.com/ppzoim/tools/errs"
-	"github.com/ppzoim/tools/log"
+	"github.com/ppzoim/tocol/errinfo"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -38,10 +51,7 @@ func RpcClientInterceptor(ctx context.Context, method string, req, resp any, cc 
 		log.ZInfo(ctx, "rpc client response success", "method", method, "resp", resp)
 		return nil
 	}
-	if errors.As(err, new(errs.CodeError)) {
-		return err
-	}
-	rpcErr, ok := errs.Unwrap(err).(interface{ GRPCStatus() *status.Status })
+	rpcErr, ok := err.(interface{ GRPCStatus() *status.Status })
 	if !ok {
 		log.ZError(ctx, "rpc client response failed not GRPCStatus", err, "method", method, "req", req)
 		return errs.ErrInternalServer.WrapMsg(err.Error())

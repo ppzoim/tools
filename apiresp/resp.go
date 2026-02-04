@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package apiresp
 
 import (
@@ -6,7 +20,7 @@ import (
 	"reflect"
 
 	"github.com/ppzoim/tools/errs"
-	"github.com/ppzoim/tools/utils/jsonutil"
+	"github.com/ppzoim/tools/ls/jsonutil"
 )
 
 type ApiResponse struct {
@@ -66,8 +80,12 @@ func ParseError(err error) *ApiResponse {
 		return ApiSuccess(nil)
 	}
 	var codeErr errs.CodeError
-	if !errors.As(err, &codeErr) {
-		codeErr = errs.ErrInternalServer.WithDetail(errs.Unwrap(err).Error())
+	if errors.As(err, &codeErr) {
+		//resp := ApiResponse{ErrCode: codeErr.Code(), ErrMsg: codeErr.Msg(), ErrDlt: codeErr.Detail()}
+		//if resp.ErrDlt == "" {
+		//	resp.ErrDlt = err.Error()
+		//}
+		return &ApiResponse{ErrCode: codeErr.Code(), ErrMsg: codeErr.Msg(), ErrDlt: codeErr.Detail()}
 	}
-	return &ApiResponse{ErrCode: codeErr.Code(), ErrMsg: codeErr.Msg(), ErrDlt: codeErr.Detail()}
+	return &ApiResponse{ErrCode: errs.ServerInternalError, ErrMsg: errs.Unwrap(err).Error()}
 }

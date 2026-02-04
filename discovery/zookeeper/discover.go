@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package zookeeper
 
 import (
@@ -97,7 +111,7 @@ func (s *ZkClient) GetUserIdHashGatewayHost(ctx context.Context, userId string) 
 	return "", nil
 }
 
-func (s *ZkClient) GetConns(ctx context.Context, serviceName string, opts ...grpc.DialOption) ([]grpc.ClientConnInterface, error) {
+func (s *ZkClient) GetConns(ctx context.Context, serviceName string, opts ...grpc.DialOption) ([]*grpc.ClientConn, error) {
 	s.logger.Debug(ctx, "get conns from client", "serviceName", serviceName)
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -125,7 +139,7 @@ func (s *ZkClient) GetConns(ctx context.Context, serviceName string, opts ...grp
 	return conns, nil
 }
 
-func (s *ZkClient) GetConn(ctx context.Context, serviceName string, opts ...grpc.DialOption) (grpc.ClientConnInterface, error) {
+func (s *ZkClient) GetConn(ctx context.Context, serviceName string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
 	newOpts := append(s.options, grpc.WithDefaultServiceConfig(fmt.Sprintf(`{"LoadBalancingPolicy": "%s"}`, s.balancerName)))
 	s.logger.Debug(context.Background(), "get conn from client", "serviceName", serviceName)
 	return grpc.DialContext(ctx, fmt.Sprintf("%s:///%s", s.scheme, serviceName), append(newOpts, opts...)...)
@@ -135,14 +149,6 @@ func (s *ZkClient) GetSelfConnTarget() string {
 	return s.rpcRegisterAddr
 }
 
-func (s *ZkClient) IsSelfNode(cc grpc.ClientConnInterface) bool {
-	cli, ok := cc.(*grpc.ClientConn)
-	if !ok {
-		return false
-	}
-	return s.GetSelfConnTarget() == cli.Target()
+func (s *ZkClient) CloseConn(conn *grpc.ClientConn) {
+	conn.Close()
 }
-
-//func (s *ZkClient) CloseConn(conn *grpc.ClientConn) {
-//	conn.Close()
-//}

@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package zookeeper
 
 import (
@@ -8,7 +22,6 @@ import (
 	"time"
 
 	"github.com/go-zookeeper/zk"
-	"github.com/ppzoim/tools/discovery"
 	"github.com/ppzoim/tools/errs"
 	"github.com/ppzoim/tools/log"
 	"google.golang.org/grpc"
@@ -41,7 +54,7 @@ type ZkClient struct {
 	options []grpc.DialOption
 
 	resolvers           map[string]*Resolver
-	localConns          map[string][]grpc.ClientConnInterface
+	localConns          map[string][]*grpc.ClientConn
 	cancel              context.CancelFunc
 	isStateDisconnected bool
 	balancerName        string
@@ -56,7 +69,7 @@ func NewZkClient(ZkServers []string, scheme string, options ...ZkOption) (*ZkCli
 		zkRoot:     "/",
 		scheme:     scheme,
 		timeout:    timeout,
-		localConns: make(map[string][]grpc.ClientConnInterface),
+		localConns: make(map[string][]*grpc.ClientConn),
 		resolvers:  make(map[string]*Resolver),
 		lock:       &sync.Mutex{},
 		logger:     nilLog{},
@@ -182,30 +195,6 @@ func (s *ZkClient) AddOption(opts ...grpc.DialOption) {
 	s.options = append(s.options, opts...)
 }
 
-func (s *ZkClient) GetClientLocalConns() map[string][]grpc.ClientConnInterface {
+func (s *ZkClient) GetClientLocalConns() map[string][]*grpc.ClientConn {
 	return s.localConns
-}
-
-func (s *ZkClient) SetKey(ctx context.Context, key string, data []byte) error {
-	return discovery.ErrNotSupported
-}
-
-func (s *ZkClient) SetWithLease(ctx context.Context, key string, val []byte, ttl int64) error {
-	return discovery.ErrNotSupported
-}
-
-func (s *ZkClient) GetKey(ctx context.Context, key string) ([]byte, error) {
-	return nil, discovery.ErrNotSupported
-}
-
-func (s *ZkClient) GetKeyWithPrefix(ctx context.Context, key string) ([][]byte, error) {
-	return nil, discovery.ErrNotSupported
-}
-
-func (s *ZkClient) DelData(ctx context.Context, key string) error {
-	return discovery.ErrNotSupported
-}
-
-func (s *ZkClient) WatchKey(ctx context.Context, key string, fn discovery.WatchKeyHandler) error {
-	return discovery.ErrNotSupported
 }

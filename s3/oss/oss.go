@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oss
 
 import (
@@ -16,10 +30,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ppzoim/tools/errs"
 	"github.com/ppzoim/tools/s3"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
-	"github.com/ppzoim/tools/errs"
 )
 
 const (
@@ -86,20 +100,16 @@ func (o *OSS) Engine() string {
 	return "ali-oss"
 }
 
-func (o *OSS) PartLimit() (*s3.PartLimit, error) {
+func (o *OSS) PartLimit() *s3.PartLimit {
 	return &s3.PartLimit{
 		MinPartSize: minPartSize,
 		MaxPartSize: maxPartSize,
 		MaxNumSize:  maxNumSize,
-	}, nil
+	}
 }
 
-func (o *OSS) InitiateMultipartUpload(ctx context.Context, name string, opt *s3.PutOption) (*s3.InitiateMultipartUploadResult, error) {
-	var opts []oss.Option
-	if opt != nil && opt.ContentType != "" {
-		opts = append(opts, oss.ContentType(opt.ContentType))
-	}
-	result, err := o.bucket.InitiateMultipartUpload(name, opts...)
+func (o *OSS) InitiateMultipartUpload(ctx context.Context, name string) (*s3.InitiateMultipartUploadResult, error) {
+	result, err := o.bucket.InitiateMultipartUpload(name)
 	if err != nil {
 		return nil, err
 	}
@@ -183,25 +193,8 @@ func (o *OSS) AuthSign(ctx context.Context, uploadID string, name string, expire
 	return &result, nil
 }
 
-func (o *OSS) PresignedPutObject(ctx context.Context, name string, expire time.Duration, opt *s3.PutOption) (*s3.PresignedPutResult, error) {
-	var (
-		opts   []oss.Option
-		header http.Header
-	)
-	if opt != nil && opt.ContentType != "" {
-		opts = append(opts, oss.ContentType(opt.ContentType))
-		header = http.Header{
-			"Content-Type": []string{opt.ContentType},
-		}
-	}
-	rawURL, err := o.bucket.SignURL(name, http.MethodPut, int64(expire/time.Second), opts...)
-	if err != nil {
-		return nil, err
-	}
-	return &s3.PresignedPutResult{
-		URL:    rawURL,
-		Header: header,
-	}, nil
+func (o *OSS) PresignedPutObject(ctx context.Context, name string, expire time.Duration) (string, error) {
+	return o.bucket.SignURL(name, http.MethodPut, int64(expire/time.Second))
 }
 
 func (o *OSS) StatObject(ctx context.Context, name string) (*s3.ObjectInfo, error) {
@@ -299,9 +292,6 @@ func (o *OSS) ListUploadedParts(ctx context.Context, uploadID string, name strin
 func (o *OSS) AccessURL(ctx context.Context, name string, expire time.Duration, opt *s3.AccessURLOption) (string, error) {
 	if opt != nil && opt.Image != nil {
 		opt.Filename = ""
-		opt.ContentType = ""
-	}
-	if opt != nil {
 		opt.ContentType = ""
 	}
 	var opts []oss.Option

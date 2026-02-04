@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package cos
 
 import (
@@ -15,10 +29,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ppzoim/tools/errs"
 	"github.com/ppzoim/tools/s3"
 	"github.com/tencentyun/cos-go-sdk-v5"
-
-	"github.com/ppzoim/tools/errs"
 )
 
 const (
@@ -45,13 +58,12 @@ type Config struct {
 	SecretKey    string
 	SessionToken string
 	PublicRead   bool
-	CDN          string
 }
 
 func NewCos(conf Config) (*Cos, error) {
 	u, err := url.Parse(conf.BucketURL)
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 	client := cos.NewClient(&cos.BaseURL{BucketURL: u}, &http.Client{
 		Transport: &cos.AuthorizationTransport{
@@ -60,24 +72,12 @@ func NewCos(conf Config) (*Cos, error) {
 			SessionToken: conf.SessionToken,
 		},
 	})
-	c := &Cos{
+	return &Cos{
 		publicRead: conf.PublicRead,
 		copyURL:    u.Host + "/",
 		client:     client,
 		credential: client.GetCredential(),
-	}
-	if conf.CDN != "" {
-		c.cdn = &cdnReplace{
-			oldValue: strings.TrimSuffix(conf.BucketURL, "/"),
-			newValue: strings.TrimSuffix(conf.CDN, "/"),
-		}
-	}
-	return c, nil
-}
-
-type cdnReplace struct {
-	oldValue string
-	newValue string
+	}, nil
 }
 
 type Cos struct {
@@ -85,32 +85,21 @@ type Cos struct {
 	copyURL    string
 	client     *cos.Client
 	credential *cos.Credential
-	cdn        *cdnReplace
-}
-
-func (c *Cos) replaceURL(urlText *string) {
-	if c.cdn == nil {
-		return
-	}
-	if !strings.HasPrefix(*urlText, c.cdn.oldValue) {
-		return
-	}
-	*urlText = strings.Replace(*urlText, c.cdn.oldValue, c.cdn.newValue, 1)
 }
 
 func (c *Cos) Engine() string {
 	return "tencent-cos"
 }
 
-func (c *Cos) PartLimit() (*s3.PartLimit, error) {
+func (c *Cos) PartLimit() *s3.PartLimit {
 	return &s3.PartLimit{
 		MinPartSize: minPartSize,
 		MaxPartSize: maxPartSize,
 		MaxNumSize:  maxNumSize,
-	}, nil
+	}
 }
 
-func (c *Cos) InitiateMultipartUpload(ctx context.Context, name string, opt *s3.PutOption) (*s3.InitiateMultipartUploadResult, error) {
+func (c *Cos) InitiateMultipartUpload(ctx context.Context, name string) (*s3.InitiateMultipartUploadResult, error) {
 	result, _, err := c.client.Object.InitiateMultipartUpload(ctx, name, nil)
 	if err != nil {
 		return nil, err
@@ -180,18 +169,15 @@ func (c *Cos) AuthSign(ctx context.Context, uploadID string, name string, expire
 			Query:      url.Values{"partNumber": {strconv.Itoa(partNumber)}},
 		}
 	}
-	c.replaceURL(&result.URL)
 	return &result, nil
 }
 
-func (c *Cos) PresignedPutObject(ctx context.Context, name string, expire time.Duration, opt *s3.PutOption) (*s3.PresignedPutResult, error) {
+func (c *Cos) PresignedPutObject(ctx context.Context, name string, expire time.Duration) (string, error) {
 	rawURL, err := c.client.Object.GetPresignedURL(ctx, http.MethodPut, name, c.credential.SecretID, c.credential.SecretKey, expire, nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	urlText := rawURL.String()
-	c.replaceURL(&urlText)
-	return &s3.PresignedPutResult{URL: urlText}, nil
+	return rawURL.String(), nil
 }
 
 func (c *Cos) DeleteObject(ctx context.Context, name string) error {
@@ -347,9 +333,7 @@ func (c *Cos) AccessURL(ctx context.Context, name string, expire time.Duration, 
 			rawURL.RawQuery = rawURL.RawQuery + "&" + imageMogr
 		}
 	}
-	urlText := rawURL.String()
-	c.replaceURL(&urlText)
-	return urlText, nil
+	return rawURL.String(), nil
 }
 
 func (c *Cos) getPresignedURL(ctx context.Context, name string, expire time.Duration, opt *cos.PresignedURLOptions) (*url.URL, error) {
@@ -406,7 +390,6 @@ func (c *Cos) FormData(ctx context.Context, name string, size int64, contentType
 	if c.credential.SessionToken != "" {
 		fd.FormData["x-cos-security-token"] = c.credential.SessionToken
 	}
-	c.replaceURL(&fd.URL)
 	return fd, nil
 }
 

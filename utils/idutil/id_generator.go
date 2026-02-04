@@ -19,9 +19,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/ppzoim/ls/ls/stringutil"
+	"github.com/ppzoim/ls/ls/timeutil"
 	"github.com/ppzoim/tools/utils/encrypt"
-	"github.com/ppzoim/tools/utils/stringutil"
-	"github.com/ppzoim/tools/utils/timeutil"
 )
 
 func GetMsgIDByMD5(sendID string) string {

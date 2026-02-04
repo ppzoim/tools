@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package mcontext
 
 import (
@@ -40,33 +54,63 @@ func SetConnID(ctx context.Context, connID string) context.Context {
 }
 
 func GetOperationID(ctx context.Context) string {
-	s, _ := ctx.Value(constant.OperationID).(string)
-	return s
+	if ctx.Value(constant.OperationID) != nil {
+		s, ok := ctx.Value(constant.OperationID).(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func GetOpUserID(ctx context.Context) string {
-	s, _ := ctx.Value(constant.OpUserID).(string)
-	return s
+	if ctx.Value(constant.OpUserID) != "" {
+		s, ok := ctx.Value(constant.OpUserID).(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func GetConnID(ctx context.Context) string {
-	s, _ := ctx.Value(constant.ConnID).(string)
-	return s
+	if ctx.Value(constant.ConnID) != "" {
+		s, ok := ctx.Value(constant.ConnID).(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func GetTriggerID(ctx context.Context) string {
-	s, _ := ctx.Value(constant.TriggerID).(string)
-	return s
+	if ctx.Value(constant.TriggerID) != "" {
+		s, ok := ctx.Value(constant.TriggerID).(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func GetOpUserPlatform(ctx context.Context) string {
-	s, _ := ctx.Value(constant.OpUserPlatform).(string)
-	return s
+	if ctx.Value(constant.OpUserPlatform) != "" {
+		s, ok := ctx.Value(constant.OpUserPlatform).(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func GetRemoteAddr(ctx context.Context) string {
-	s, _ := ctx.Value(constant.RemoteAddr).(string)
-	return s
+	if ctx.Value(constant.RemoteAddr) != "" {
+		s, ok := ctx.Value(constant.RemoteAddr).(string)
+		if ok {
+			return s
+		}
+	}
+	return ""
 }
 
 func GetMustCtxInfo(ctx context.Context) (operationID, opUserID, platform, connID string, err error) {

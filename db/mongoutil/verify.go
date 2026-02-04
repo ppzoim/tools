@@ -1,27 +1,48 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package mongoutil
 
 import (
 	"context"
 
 	"github.com/ppzoim/tools/errs"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // CheckMongo tests the MongoDB connection without retries.
 func Check(ctx context.Context, config *Config) error {
-	client, err := NewMongoDB(ctx, config)
+	if err := config.ValidateAndSetDefaults(); err != nil {
+		return err
+	}
+
+	clientOpts := options.Client().ApplyURI(config.Uri)
+	mongoClient, err := mongo.Connect(ctx, clientOpts)
 	if err != nil {
-		if config.MongoMode == ReplicaSetMode {
-			return errs.WrapMsg(err, "failed to connect to MongoDB replica set", "config", config)
-		} else {
-			return errs.WrapMsg(err, "MongoDB connect failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
-		}
+		return errs.WrapMsg(err, "MongoDB connect failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
 	}
 
 	defer func() {
-		if client != nil && client.db != nil {
-			client.db.Client().Disconnect(ctx)
+		if err := mongoClient.Disconnect(ctx); err != nil {
+			_ = mongoClient.Disconnect(ctx)
 		}
 	}()
+
+	if err = mongoClient.Ping(ctx, nil); err != nil {
+		return errs.WrapMsg(err, "MongoDB ping failed", "URI", config.Uri, "Database", config.Database, "MaxPoolSize", config.MaxPoolSize)
+	}
 
 	return nil
 }

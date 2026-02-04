@@ -1,3 +1,17 @@
+// Copyright © 2023 OpenIM. All rights reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package minio
 
 import (
@@ -16,12 +30,12 @@ import (
 	"unsafe"
 
 	"github.com/minio/minio-go/v7"
+	"github.com/ppzoim/tools/errs"
+	"github.com/ppzoim/tools/log"
 	"github.com/ppzoim/tools/s3"
 
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/signer"
-	"github.com/ppzoim/tools/errs"
-	"github.com/ppzoim/tools/log"
 )
 
 const (
@@ -183,15 +197,15 @@ func (m *Minio) Engine() string {
 	return "minio"
 }
 
-func (m *Minio) PartLimit() (*s3.PartLimit, error) {
+func (m *Minio) PartLimit() *s3.PartLimit {
 	return &s3.PartLimit{
 		MinPartSize: minPartSize,
 		MaxPartSize: maxPartSize,
 		MaxNumSize:  maxNumSize,
-	}, nil
+	}
 }
 
-func (m *Minio) InitiateMultipartUpload(ctx context.Context, name string, opt *s3.PutOption) (*s3.InitiateMultipartUploadResult, error) {
+func (m *Minio) InitiateMultipartUpload(ctx context.Context, name string) (*s3.InitiateMultipartUploadResult, error) {
 	if err := m.initMinio(ctx); err != nil {
 		return nil, err
 	}
@@ -280,18 +294,18 @@ func (m *Minio) AuthSign(ctx context.Context, uploadID string, name string, expi
 	return &result, nil
 }
 
-func (m *Minio) PresignedPutObject(ctx context.Context, name string, expire time.Duration, opt *s3.PutOption) (*s3.PresignedPutResult, error) {
+func (m *Minio) PresignedPutObject(ctx context.Context, name string, expire time.Duration) (string, error) {
 	if err := m.initMinio(ctx); err != nil {
-		return nil, err
+		return "", err
 	}
 	rawURL, err := m.sign.PresignedPutObject(ctx, m.bucket, name, expire)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	if m.prefix != "" {
 		rawURL.Path = path.Join(m.prefix, rawURL.Path)
 	}
-	return &s3.PresignedPutResult{URL: rawURL.String()}, nil
+	return rawURL.String(), nil
 }
 
 func (m *Minio) DeleteObject(ctx context.Context, name string) error {
@@ -478,18 +492,18 @@ func (m *Minio) FormData(ctx context.Context, name string, size int64, contentTy
 	if err := policy.SetBucket(m.bucket); err != nil {
 		return nil, err
 	}
-	_, fd, err := m.sign.PresignedPostPolicy(ctx, policy)
+	u, fd, err := m.core.PresignedPostPolicy(ctx, policy)
 	if err != nil {
 		return nil, err
 	}
-	endpoint := m.conf.SignEndpoint
-	if strings.HasSuffix(endpoint, "/") {
-		endpoint = endpoint + m.conf.Bucket
-	} else {
-		endpoint = endpoint + "/" + m.bucket
+	sign, err := url.Parse(m.signEndpoint)
+	if err != nil {
+		return nil, err
 	}
+	u.Scheme = sign.Scheme
+	u.Host = sign.Host
 	return &s3.FormData{
-		URL:          endpoint,
+		URL:          u.String(),
 		File:         "file",
 		Header:       nil,
 		FormData:     fd,
