@@ -1,12 +1,12 @@
-package mw
+﻿package mw
 
 import (
 	"context"
 	"fmt"
 	"math"
 
-	"github.com/openimsdk/protocol/constant"
-	"github.com/openimsdk/protocol/errinfo"
+	"github.com/ppzoim/protocol/constant"
+	"github.com/ppzoim/protocol/errinfo"
 	"github.com/ppzoim/tools/checker"
 	"github.com/ppzoim/tools/errs"
 	"github.com/ppzoim/tools/log"

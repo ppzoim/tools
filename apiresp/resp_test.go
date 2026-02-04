@@ -1,10 +1,10 @@
-package apiresp
+﻿package apiresp
 
 import (
 	"testing"
 
-	"github.com/openimsdk/protocol/relation"
-	"github.com/openimsdk/protocol/wrapperspb"
+	"github.com/ppzoim/protocol/relation"
+	"github.com/ppzoim/protocol/wrapperspb"
 	"github.com/ppzoim/tools/utils/jsonutil"
 )
 

@@ -1,4 +1,4 @@
-package log
+﻿package log
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/openimsdk/protocol/constant"
+	"github.com/ppzoim/protocol/constant"
 	"github.com/ppzoim/tools/mcontext"
 )
 
