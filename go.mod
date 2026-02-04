@@ -1,4 +1,4 @@
-module github.com/openimsdk/tools
+module github.com/ppzoim/tools
 
 go 1.22.0
 
